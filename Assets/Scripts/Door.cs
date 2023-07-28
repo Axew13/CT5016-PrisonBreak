@@ -5,6 +5,7 @@ using UnityEngine;
 public class Door : MonoBehaviour, IInteractable
 {
     public bool requiresKey;
+    public bool hookable;
 
     private bool isLocked = true;
     private bool isOpen = false;
@@ -35,31 +36,49 @@ public class Door : MonoBehaviour, IInteractable
         {
             if (isLocked && requiresKey)
             {
-                if (GameData.hasHook)
+                if (GameData.hasHook && hookable)
                 {
+                    doorAnimator.Play("HookUnlockDoor", 0);
+                    unlockDoor();
                     openDoor();
+                }
+                else if (GameData.hasKey)
+                {
+                    doorAnimator.Play("KeyUnlockDoor", 0);
+                    unlockDoor();
+                    openDoor();
+                }
+                else if (GameData.hasHook)
+                {
+                    doorAnimator.Play("FailToUnlockDoorWithHook", 0);
+                    failToUnlockDoor();
                 }
                 else
                 {
-                    failToOpenDoor();
+                    failToUnlockDoor();
                 }
             }
             else
             {
+                doorAnimator.Play("DoorOpen", 0);
                 openDoor();
             }
         }
+    }
+
+    private void unlockDoor ()
+    {
+        isLocked = false;
+        audioSource.PlayOneShot(doorUnlockSound);
     }
 
     private void openDoor ()
     {
         Debug.Log("Opening door");
 
-        isLocked = false;
         isOpen = true;
 
         audioSource.PlayOneShot(doorOpenSound);
-        doorAnimator.Play("DoorOpen", 0);
     }
 
     private void closeDoor ()
@@ -72,7 +91,7 @@ public class Door : MonoBehaviour, IInteractable
         doorAnimator.Play("DoorClose", 0);
     }
 
-    private void failToOpenDoor ()
+    private void failToUnlockDoor ()
     {
         Debug.Log("Door is locked!");
 
